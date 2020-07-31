@@ -1,7 +1,7 @@
 from bs4 import BeautifulSoup
 import requests
 import csv
-#from text import *
+from lsi import *
 
 
 #with open("htmldoc.html") as fp:
