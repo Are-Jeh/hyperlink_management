@@ -1,56 +1,34 @@
-from nltk.tokenize import RegexpTokenizer
-from stop_words import get_stop_words
-from nltk.stem.porter import PorterStemmer
 from gensim import corpora, models
-import gensim
+from general import *
+from gensim import similarities
+#from gensim import models
+#algo lda a=1, lsi and then tfidf
+def LDAmodel(setofdocs , query ,dictionary, document_tm):
 
-def LDA(documents , doc):
-    tokenizer = RegexpTokenizer(r'\w+')
-
-    # create English stop words list
-    en_stop = get_stop_words('en')
-
-    # Create p_stemmer of class PorterStemmer
-    p_stemmer = PorterStemmer()
-    '''
-    # create sample documents
-    doc_a = "Brocolli is good to eat. My brother likes to eat good brocolli, but not my mother."
-    doc_b = "My mother spends a lot of time driving my brother around to baseball practice."
-    doc_c = "Some health experts suggest that driving may cause increased tension and blood pressure."
-    doc_d = "I often feel pressure to perform well at school, but my mother never seems to drive my brother to do better."
-    doc_e = "Health professionals say that brocolli is good for your health."
-    '''
-    # compile sample documents into a list
-    #documents = [doc_a, doc_b, doc_c, doc_d, doc_e]
-    # list for tokenized documents in loop
-    texts = []
-    # loop through document list
-    for i in documents:
-        # clean and tokenize document string
-        raw = i.lower()
-        tokens = tokenizer.tokenize(raw)
-        # remove stop words from tokens
-        stopped_tokens = [i for i in tokens if not i in en_stop]
-        # stem tokens
-        stemmed_tokens = [p_stemmer.stem(i) for i in stopped_tokens]
-        # add tokens to list
-        texts.append(stemmed_tokens)
-
-    # turn our tokenized documents into a id <-> term dictionary
-    dictionary = corpora.Dictionary(texts)
-    # convert tokenized documents into a document-term matrix
-    corpus = [dictionary.doc2bow(text) for text in texts]
+    texts = cleandata(setofdocs)
+    #dictionary,dtm=create_corpus(texts)
     # generate LDA model
-    lda = gensim.models.ldamodel.LdaModel(corpus, num_topics=2, id2word = dictionary, passes=20)
-    #print(ldamodel)
-    from gensim import similarities
-    index = similarities.MatrixSimilarity(lda[corpus])
-    index.save("simIndex.index")
+    lda = models.ldamodel.LdaModel(dtm, num_topics=50, id2word = dictionary, passes=20)
+    #index.save("simIndex.index")
 
-    #docname = "docs/the_doc.txt"
-    vec_bow = dictionary.doc2bow(doc.lower().split())
+    vec_bow = dictionary.doc2bow(query)
     vec_lda = lda[vec_bow]
-
+    index = similarities.MatrixSimilarity(lda[dtm])
     sims = index[vec_lda]
-    sims = sorted(enumerate(sims), key=lambda item: -item[1])
+    #sims = sorted(enumerate(sims), key=lambda item: -item[1])
     return sims
+
+def jensen_shannon(query , matrix):
+    """
+    This function implements a Jensen-Shannon similarity
+    between the input query (an LDA topic distribution for a document)
+    and the entire corpus of topic distributions.
+    It returns an array of length M where M is the number of documents in the corpus
+    """
+    # lets keep with the p,q notation above
+    p = query[None,:].T # take transpose
+    q = matrix.T # transpose matrix
+    m = 0.5*(p + q)
+    return np.sqrt(0.5*(entropy(p,m) + entropy(q,m)))
+
+
