@@ -1,5 +1,5 @@
 from gensim import models
-from textanal import *
+from general import *
 from gensim import similarities
 def LSImodel( clean_content , query, dictionary, document_tm ) :
 
