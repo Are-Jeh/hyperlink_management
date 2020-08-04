@@ -1,6 +1,6 @@
 from bs4 import BeautifulSoup
 import requests
-from textanal import *
+from general import *
 from lsi import *
 
 
